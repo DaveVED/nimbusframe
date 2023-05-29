@@ -3,11 +3,12 @@ package scrapper
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 	"strings"
 )
 
 func FindResources(dir string) ([]string, error) {
-	servicesPath := dir + "/internal/service/ec2"
+	servicesPath := dir + "/internal/service"
 	files, err := searchDir(servicesPath)
 	if err != nil {
 		return nil, err
@@ -24,19 +25,29 @@ func FindResources(dir string) ([]string, error) {
 }
 
 func searchDir(dir string) ([]string, error) {
-	/* TODO: If not a *.go file, check if it's a dir. If it's a dir serach it... Add recursive logic. */
 	files := []string{}
 	entries, err := os.ReadDir(dir)
 	if err != nil {
 		return nil, err
 	}
 
-	for _, e := range entries {
-		fileName := e.Name()
-		if isGoFile(fileName) {
-			files = append(files, fileName)
+	for _, entry := range entries {
+		if entry.IsDir() {
+			subDir := filepath.Join(dir, entry.Name())
+			subFiles, err := searchDir(subDir)
+			if err != nil {
+				return nil, err
+			}
+			files = append(files, subFiles...)
+		} else {
+			fileName := entry.Name()
+			/* TODO: And not a _test file -- change isGoFile to isValidGoFile */
+			if isGoFile(fileName) {
+				files = append(files, fileName)
+			}
 		}
 	}
+
 	return files, nil
 }
 
@@ -46,6 +57,8 @@ func extractResources(files []string) ([]string, error) {
 }
 
 func isGoFile(file string) bool {
+	/* TODO: And not a _test file -- change isGoFile to isValidGoFile */
+	/* TODO: Find common files, and also do not add those */
 	components := strings.Split(file, ".")
 
 	if len(components) == 0 {
