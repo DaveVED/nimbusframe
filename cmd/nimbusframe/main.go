@@ -1,7 +1,14 @@
 package main
 
-import "fmt"
+import (
+	"github.com/DaveVED/nimbusframe/internal/utils"
+)
 
 func main() {
-	fmt.Println("HI")
+	tempDir, err := utils.CloneGithubRepo("https://github.com/hashicorp/terraform-provider-aws.git")
+	if err != nil {
+		return
+	}
+
+	utils.CleanupTempDir(tempDir)
 }
