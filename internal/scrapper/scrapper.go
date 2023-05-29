@@ -2,17 +2,25 @@ package scrapper
 
 import (
 	"fmt"
-	"log"
 	"os"
 	"strings"
 )
 
-func FindResources(dir string) []string {
+func FindResources(dir string) ([]string, error) {
 	servicesPath := dir + "/internal/service/ec2"
 	files, err := searchDir(servicesPath)
+	if err != nil {
+		return nil, err
+	}
 	fmt.Println(files)
-	fmt.Println(err)
-	return []string{}
+
+	resources, err := extractResources(files)
+	if err != nil {
+		return nil, err
+	}
+	fmt.Println(resources)
+
+	return resources, nil
 }
 
 func searchDir(dir string) ([]string, error) {
@@ -20,7 +28,7 @@ func searchDir(dir string) ([]string, error) {
 	files := []string{}
 	entries, err := os.ReadDir(dir)
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 
 	for _, e := range entries {
@@ -32,9 +40,9 @@ func searchDir(dir string) ([]string, error) {
 	return files, nil
 }
 
-func extractResource(path string) string {
-	/* TODO: Write code to extract SDKResource from Terraform go file. */
-	return ""
+func extractResources(files []string) ([]string, error) {
+	/* TODO: Write code to extract SDKResourcse from Terraform go files. */
+	return []string{}, nil
 }
 
 func isGoFile(file string) bool {
