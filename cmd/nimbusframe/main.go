@@ -5,5 +5,5 @@ import (
 )
 
 func main() {
-	scrapper.FindResources("/var/folders/y3/gdy4qk8933v2b1_j837kc3nc0000gn/T/tmpGithub1801094950")
+	scrapper.FindResources("/var/folders/y3/gdy4qk8933v2b1_j837kc3nc0000gn/T/tmpGithub870942636")
 }

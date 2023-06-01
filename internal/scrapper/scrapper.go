@@ -1,7 +1,8 @@
 package scrapper
 
 import (
-	"fmt"
+	"encoding/csv"
+	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -13,15 +14,38 @@ func FindResources(dir string) ([]string, error) {
 	if err != nil {
 		return nil, err
 	}
-	fmt.Println(files)
 
 	resources, err := extractResources(files)
 	if err != nil {
 		return nil, err
 	}
-	fmt.Println(resources)
 
-	return resources, nil
+	err = writeNames(resources)
+	if err != nil {
+		return nil, err
+	}
+
+	return []string{}, nil
+}
+
+func writeNames(resources map[string]string) error {
+	/* TODO: If file exits check, handle that case */
+	csvFile, err := os.Create("names/resource_names.csv")
+	if err != nil {
+		return err
+	}
+	defer csvFile.Close()
+
+	writer := csv.NewWriter(csvFile)
+	defer writer.Flush()
+
+	writer.Write([]string{"SDKResource", "Name"})
+
+	for key, value := range resources {
+		writer.Write([]string{key, value})
+	}
+
+	return nil
 }
 
 func searchDir(dir string) ([]string, error) {
@@ -43,7 +67,8 @@ func searchDir(dir string) ([]string, error) {
 			fileName := entry.Name()
 			/* TODO: And not a _test file -- change isGoFile to isValidGoFile */
 			if isGoFile(fileName) {
-				files = append(files, fileName)
+				tempFile := filepath.Join(dir, fileName)
+				files = append(files, tempFile)
 			}
 		}
 	}
@@ -51,9 +76,37 @@ func searchDir(dir string) ([]string, error) {
 	return files, nil
 }
 
-func extractResources(files []string) ([]string, error) {
-	/* TODO: Write code to extract SDKResourcse from Terraform go files. */
-	return []string{}, nil
+func extractResources(files []string) (map[string]string, error) {
+	resources := make(map[string]string)
+
+	for _, entry := range files {
+		fileContent, err := ioutil.ReadFile(entry)
+		if err != nil {
+			return nil, err
+		}
+
+		lines := strings.Split(string(fileContent), "\n")
+		for _, line := range lines {
+			if strings.Contains(line, "// @SDKResource") {
+				start := strings.Index(line, "(")
+				end := strings.Index(line, ")")
+				tempLine := line[start+1 : end]
+				values := strings.Split(tempLine, ",")
+				rawResource := values[0]
+				resource := rawResource[1 : len(rawResource)-1]
+
+				name := ""
+				if len(values) == 2 {
+					fullValue := values[1]
+					name = fullValue[7 : len(fullValue)-1]
+				}
+
+				resources[resource] = name
+			}
+		}
+	}
+
+	return resources, nil
 }
 
 func isGoFile(file string) bool {
