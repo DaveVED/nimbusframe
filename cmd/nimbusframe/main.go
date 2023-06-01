@@ -1,14 +1,9 @@
 package main
 
 import (
-	"github.com/DaveVED/nimbusframe/internal/utils"
+	"github.com/DaveVED/nimbusframe/internal/scrapper"
 )
 
 func main() {
-	tempDir, err := utils.CloneGithubRepo("https://github.com/hashicorp/terraform-provider-aws.git")
-	if err != nil {
-		return
-	}
-
-	utils.CleanupTempDir(tempDir)
+	scrapper.FindResources("/var/folders/y3/gdy4qk8933v2b1_j837kc3nc0000gn/T/tmpGithub870942636")
 }
